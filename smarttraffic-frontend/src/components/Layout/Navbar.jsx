@@ -22,6 +22,12 @@ const Navbar = ({ onMenuToggle }) => {
             Dashboard
           </Link>
           <Link
+            to="/sumo"
+            className={`nav-link ${location.pathname === '/sumo' ? 'active' : ''}`}
+          >
+            SUMO Sim
+          </Link>
+          <Link
             to="/about"
             className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`}
           >
@@ -61,7 +67,7 @@ const Navbar = ({ onMenuToggle }) => {
             {theme === 'light' ? <FiMoon size={20} /> : <FiSun size={20} />}
           </button>
 
-          <button className="menu-toggle" onClick={onMenuToggle}>
+          <button className="menu-toggle desktop-menu-toggle" onClick={onMenuToggle} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '1.5rem', cursor: 'pointer' }}>
             <FiMenu />
           </button>
         </div>

@@ -1,12 +1,26 @@
 fastapi
-uvicorn
+uvicorn[standard]
 opencv-python-headless
 ultralytics
 openai
 python-dotenv
 numpy
 requests
-pydantic<2.0
+pydantic>=2.0
 sse-starlette
 python-multipart
-#py -3.11 -m uvicorn main:app --host 0.0.0.0 --port 8000
+
+# ---------------------------------------------------------------
+# SUMO (traci + sumolib) are NOT pip packages.
+# They are bundled with Eclipse SUMO. To use SUMO simulation:
+#   1. Download & install Eclipse SUMO: https://sumo.dlr.de/docs/Downloads.php
+#   2. Set the SUMO_HOME environment variable, e.g.:
+#      Windows: set SUMO_HOME=C:\Program Files (x86)\Eclipse\Sumo
+#      Linux:   export SUMO_HOME=/usr/share/sumo
+#   3. Add SUMO tools to Python path:
+#      sys.path.append(os.path.join(os.environ['SUMO_HOME'], 'tools'))
+# Without SUMO, the server still starts normally (SUMO routes return 503).
+# ---------------------------------------------------------------
+
+# To start the server:
+# py -3.11 -m uvicorn main:app --host 0.0.0.0 --port 8000

@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "C:\\Users\\HP\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "python.analysis.extraPaths": [
+    "C:\\Users\\HP\\AppData\\Roaming\\Python\\Python311\\site-packages"
+  ],
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.diagnosticMode": "workspace",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python"
+  }
+}

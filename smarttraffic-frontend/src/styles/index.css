@@ -163,11 +163,16 @@ button {
   width: 100%;
   position: relative;
   transition: padding-left 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 1024px) {
   .main-content {
     padding-left: 280px;
     /* Sidebar width */
+  }
+  .main-content.collapsed {
+    padding-left: 80px;
   }
 }

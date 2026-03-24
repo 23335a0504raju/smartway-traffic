@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SmartWay Traffic - Sample City Block Routes
+  Vehicle types: car, bus, truck, motorcycle, ambulance
+  Flows simulate a busy urban city block (1-hour window = 3600s)
+
+  Entry edges (outer):
+    eN_W (North → J_NW)   eN_E (North → J_NE)
+    eS_W (South → J_SW)   eS_E (South → J_SE)
+    eW_N (West  → J_NW)   eW_S (West  → J_SW)
+    eE_N (East  → J_NE)   eE_S (East  → J_SE)
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <!-- =================== VEHICLE TYPES =================== -->
+    <vType id="car"        accel="2.6" decel="4.5" sigma="0.5" length="4.5"  minGap="2.5" maxSpeed="50"  guiShape="passenger"  color="0.2,0.6,1.0"/>
+    <vType id="bus"        accel="1.2" decel="4.0" sigma="0.4" length="12.0" minGap="3.0" maxSpeed="30"  guiShape="bus"         color="1.0,0.8,0.0"/>
+    <vType id="truck"      accel="1.0" decel="3.5" sigma="0.3" length="10.0" minGap="4.0" maxSpeed="25"  guiShape="truck"       color="0.6,0.4,0.2"/>
+    <vType id="motorcycle" accel="3.5" decel="5.0" sigma="0.6" length="2.2"  minGap="1.5" maxSpeed="60"  guiShape="motorcycle"  color="0.9,0.2,0.9"/>
+    <vType id="ambulance"  accel="3.0" decel="5.0" sigma="0.2" length="6.0"  minGap="2.5" maxSpeed="70"  guiShape="emergency"   color="1.0,0.0,0.0">
+        <param key="has.bluelight.device" value="true"/>
+    </vType>
+
+    <!-- =================== ROUTES (paths through the network) =================== -->
+    <!-- North-South through routes -->
+    <route id="r_N_W_to_S_W" edges="eN_W eI_NW_SW eS_W"/>
+    <route id="r_N_E_to_S_E" edges="eN_E eI_NE_SE eS_E"/>
+    <route id="r_S_W_to_N_W" edges="eS_W eI_SW_NW eN_W"/>
+    <route id="r_S_E_to_N_E" edges="eS_E eI_SE_NE eN_E"/>
+    <!-- East-West through routes -->
+    <route id="r_W_N_to_E_N" edges="eW_N eI_NW_NE eE_N"/>
+    <route id="r_W_S_to_E_S" edges="eW_S eI_SW_SE eE_S"/>
+    <route id="r_E_N_to_W_N" edges="eE_N eI_NE_NW eW_N"/>
+    <route id="r_E_S_to_W_S" edges="eE_S eI_SE_SW eW_S"/>
+    <!-- Cross routes (N to E, W to S, etc.) -->
+    <route id="r_N_W_to_E_N" edges="eN_W eI_NW_NE eE_N"/>
+    <route id="r_W_N_to_S_W" edges="eW_N eI_NW_SW eS_W"/>
+    <route id="r_N_E_to_E_S" edges="eN_E eI_NE_SE eE_S"/>
+    <route id="r_E_N_to_S_E" edges="eE_N eI_NE_SE eS_E"/>
+
+    <!-- =================== VEHICLE FLOWS =================== -->
+    <!-- Realistic urban ratios: car=70%, motorcycle=15%, bus=10%, truck=5% -->
+
+    <!-- === NORTH ENTRY (J_NW) — High traffic corridor === -->
+    <flow id="f_NW_car"  type="car"        begin="0" end="3600" number="700" route="r_N_W_to_S_W"/>
+    <flow id="f_NW_moto" type="motorcycle" begin="0" end="3600" number="150" route="r_N_W_to_E_N"/>
+    <flow id="f_NW_bus"  type="bus"        begin="0" end="3600" number="80"  route="r_N_W_to_S_W"/>
+    <flow id="f_NW_trk"  type="truck"      begin="0" end="3600" number="40"  route="r_N_W_to_S_W"/>
+
+    <!-- === NORTH ENTRY (J_NE) — Medium traffic === -->
+    <flow id="f_NE_car"  type="car"        begin="0" end="3600" number="500" route="r_N_E_to_S_E"/>
+    <flow id="f_NE_moto" type="motorcycle" begin="0" end="3600" number="120" route="r_N_E_to_E_S"/>
+    <flow id="f_NE_bus"  type="bus"        begin="0" end="3600" number="60"  route="r_N_E_to_S_E"/>
+    <flow id="f_NE_trk"  type="truck"      begin="0" end="3600" number="30"  route="r_N_E_to_S_E"/>
+
+    <!-- === SOUTH ENTRY (J_SW) === -->
+    <flow id="f_SW_car"  type="car"        begin="0" end="3600" number="600" route="r_S_W_to_N_W"/>
+    <flow id="f_SW_moto" type="motorcycle" begin="0" end="3600" number="130" route="r_S_W_to_N_W"/>
+    <flow id="f_SW_bus"  type="bus"        begin="0" end="3600" number="70"  route="r_S_W_to_N_W"/>
+    <flow id="f_SW_trk"  type="truck"      begin="0" end="3600" number="35"  route="r_S_W_to_N_W"/>
+
+    <!-- === SOUTH ENTRY (J_SE) === -->
+    <flow id="f_SE_car"  type="car"        begin="0" end="3600" number="450" route="r_S_E_to_N_E"/>
+    <flow id="f_SE_moto" type="motorcycle" begin="0" end="3600" number="90"  route="r_S_E_to_N_E"/>
+    <flow id="f_SE_bus"  type="bus"        begin="0" end="3600" number="50"  route="r_S_E_to_N_E"/>
+    <flow id="f_SE_trk"  type="truck"      begin="0" end="3600" number="25"  route="r_S_E_to_N_E"/>
+
+    <!-- === WEST ENTRY (J_NW) — Busy commuter road === -->
+    <flow id="f_WN_car"  type="car"        begin="0" end="3600" number="800" route="r_W_N_to_E_N"/>
+    <flow id="f_WN_moto" type="motorcycle" begin="0" end="3600" number="200" route="r_W_N_to_S_W"/>
+    <flow id="f_WN_bus"  type="bus"        begin="0" end="3600" number="100" route="r_W_N_to_E_N"/>
+    <flow id="f_WN_trk"  type="truck"      begin="0" end="3600" number="50"  route="r_W_N_to_E_N"/>
+
+    <!-- === WEST ENTRY (J_SW) === -->
+    <flow id="f_WS_car"  type="car"        begin="0" end="3600" number="400" route="r_W_S_to_E_S"/>
+    <flow id="f_WS_moto" type="motorcycle" begin="0" end="3600" number="90"  route="r_W_S_to_E_S"/>
+    <flow id="f_WS_bus"  type="bus"        begin="0" end="3600" number="45"  route="r_W_S_to_E_S"/>
+    <flow id="f_WS_trk"  type="truck"      begin="0" end="3600" number="22"  route="r_W_S_to_E_S"/>
+
+    <!-- === EAST ENTRY (J_NE) === -->
+    <flow id="f_EN_car"  type="car"        begin="0" end="3600" number="550" route="r_E_N_to_W_N"/>
+    <flow id="f_EN_moto" type="motorcycle" begin="0" end="3600" number="110" route="r_E_N_to_S_E"/>
+    <flow id="f_EN_bus"  type="bus"        begin="0" end="3600" number="65"  route="r_E_N_to_W_N"/>
+    <flow id="f_EN_trk"  type="truck"      begin="0" end="3600" number="28"  route="r_E_N_to_W_N"/>
+
+    <!-- === EAST ENTRY (J_SE) === -->
+    <flow id="f_ES_car"  type="car"        begin="0" end="3600" number="350" route="r_E_S_to_W_S"/>
+    <flow id="f_ES_moto" type="motorcycle" begin="0" end="3600" number="75"  route="r_E_S_to_W_S"/>
+    <flow id="f_ES_bus"  type="bus"        begin="0" end="3600" number="40"  route="r_E_S_to_W_S"/>
+    <flow id="f_ES_trk"  type="truck"      begin="0" end="3600" number="18"  route="r_E_S_to_W_S"/>
+
+    <!-- === EMERGENCY VEHICLES (Sparse — ~1 per hour per major corridor) === -->
+    <flow id="f_amb_NS" type="ambulance" begin="200"  end="3600" probability="0.005" route="r_N_W_to_S_W"/>
+    <flow id="f_amb_WE" type="ambulance" begin="500"  end="3600" probability="0.003" route="r_W_N_to_E_N"/>
+    <flow id="f_amb_SE" type="ambulance" begin="1200" end="3600" probability="0.002" route="r_S_E_to_N_E"/>
+
+</routes>

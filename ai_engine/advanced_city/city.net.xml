@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<net version="1.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="-500.00,-500.00,500.00,500.00" origBoundary="-500.00,-500.00,500.00,500.00" projParameter="!"/>
+
+    <edge id=":J0_0" function="internal">
+        <lane id=":J0_0_0" index="0" speed="13.89" length="14.40" shape="-7.20,10.00 -7.20,-10.00"/>
+    </edge>
+    <edge id=":J0_1" function="internal">
+        <lane id=":J0_1_0" index="0" speed="13.89" length="14.40" shape="10.00,7.20 -10.00,7.20"/>
+    </edge>
+    <edge id=":J0_2" function="internal">
+        <lane id=":J0_2_0" index="0" speed="13.89" length="14.40" shape="7.20,-10.00 7.20,10.00"/>
+    </edge>
+    <edge id=":J0_3" function="internal">
+        <lane id=":J0_3_0" index="0" speed="13.89" length="14.40" shape="-10.00,-7.20 10.00,-7.20"/>
+    </edge>
+
+    <edge id="E_North_In" from="N_Bound" to="J0" priority="-1">
+        <lane id="E_North_In_0" index="0" speed="13.89" length="500.00" shape="-7.20,500.00 -7.20,10.00"/>
+    </edge>
+    <edge id="E_North_Out" from="J0" to="N_Bound" priority="-1">
+        <lane id="E_North_Out_0" index="0" speed="13.89" length="500.00" shape="7.20,10.00 7.20,500.00"/>
+    </edge>
+
+    <edge id="E_South_In" from="S_Bound" to="J0" priority="-1">
+        <lane id="E_South_In_0" index="0" speed="13.89" length="500.00" shape="7.20,-500.00 7.20,-10.00"/>
+    </edge>
+    <edge id="E_South_Out" from="J0" to="S_Bound" priority="-1">
+        <lane id="E_South_Out_0" index="0" speed="13.89" length="500.00" shape="-7.20,-10.00 -7.20,-500.00"/>
+    </edge>
+
+    <edge id="E_East_In" from="E_Bound" to="J0" priority="-1">
+        <lane id="E_East_In_0" index="0" speed="13.89" length="500.00" shape="500.00,7.20 10.00,7.20"/>
+    </edge>
+    <edge id="E_East_Out" from="J0" to="E_Bound" priority="-1">
+        <lane id="E_East_Out_0" index="0" speed="13.89" length="500.00" shape="10.00,-7.20 500.00,-7.20"/>
+    </edge>
+
+    <edge id="E_West_In" from="W_Bound" to="J0" priority="-1">
+        <lane id="E_West_In_0" index="0" speed="13.89" length="500.00" shape="-500.00,-7.20 -10.00,-7.20"/>
+    </edge>
+    <edge id="E_West_Out" from="J0" to="W_Bound" priority="-1">
+        <lane id="E_West_Out_0" index="0" speed="13.89" length="500.00" shape="-10.00,7.20 -500.00,7.20"/>
+    </edge>
+
+    <junction id="J0" type="traffic_light" x="0.00" y="0.00" incLanes="E_North_In_0 E_East_In_0 E_South_In_0 E_West_In_0" intLanes=":J0_0_0 :J0_1_0 :J0_2_0 :J0_3_0" shape="-10.40,10.00 10.40,10.00 10.00,10.40 10.00,-10.40 -10.40,-10.00 -10.40,10.00">
+        <request index="0" response="0000" foes="1010" cont="0"/>
+        <request index="1" response="0101" foes="0101" cont="0"/>
+        <request index="2" response="0000" foes="1010" cont="0"/>
+        <request index="3" response="0101" foes="0101" cont="0"/>
+    </junction>
+    <junction id="N_Bound" type="dead_end" x="0.00" y="500.00"/>
+    <junction id="S_Bound" type="dead_end" x="0.00" y="-500.00"/>
+    <junction id="E_Bound" type="dead_end" x="500.00" y="0.00"/>
+    <junction id="W_Bound" type="dead_end" x="-500.00" y="0.00"/>
+
+</net>

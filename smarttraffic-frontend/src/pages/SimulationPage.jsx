@@ -76,14 +76,14 @@ const SimulationPage = () => {
 
                     source.close();
                     setEvtSource(null);
-                    // setFrameSrc(null); // Keep the last frame visible (important for images)
+                    // Store clean vehicle counts + accident metadata separately
                     setFinalCounts({
-                        ...data.counts,
-                        lane_data: data.lane_data,
-                        signals: data.signals,
-                        emergency: data.emergency,
-                        calc_accident_type: data.accident_type,
-                        calc_severity: data.severity
+                        // Pure numeric vehicle counts only
+                        ...(data.counts || {}),
+                        // Accident metadata stored under clear keys
+                        _emergency: data.emergency || false,
+                        _accident_type: data.accident_type || null,
+                        _severity: data.severity || null,
                     });
                     setSnapshotPath(data.snapshot_path || null);
                     setStatus('completed');
@@ -127,10 +127,10 @@ const SimulationPage = () => {
 
         // Manual Stop: Merge counts with captured metadata
         setFinalCounts({
-            ...vehicleCounts,
-            emergency: latestMetricsRef.current.emergency,
-            calc_accident_type: latestMetricsRef.current.accident_type,
-            calc_severity: latestMetricsRef.current.severity
+            ...(vehicleCounts || {}),
+            _emergency: latestMetricsRef.current.emergency || false,
+            _accident_type: latestMetricsRef.current.accident_type || null,
+            _severity: latestMetricsRef.current.severity || null,
         });
 
         setStatus('completed');
@@ -144,11 +144,21 @@ const SimulationPage = () => {
         setSaving(true); // Start Loading
 
 
+        // Build a clean payload: strip internal _metadata keys from vehicle counts
+        const vehicleCountsOnly = Object.fromEntries(
+            Object.entries(finalCounts || {}).filter(([k]) => !k.startsWith('_'))
+        );
+        const accidentMeta = {
+            emergency: finalCounts?._emergency || false,
+            accident_type: finalCounts?._accident_type || null,
+            severity: finalCounts?._severity || null,
+        };
+
         fetch(`http://localhost:5000/api/videos/${currentVideoId}/analysis`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                analysis_summary: finalCounts,
+                analysis_summary: { ...vehicleCountsOnly, ...accidentMeta },
                 snapshot_path: snapshotPath
             })
         })
@@ -338,7 +348,7 @@ const SimulationPage = () => {
                                 <h3 className="text-lg font-semibold mb-3 text-blue-400">Vehicle Counts</h3>
 
                                 {/* Accident Metrics Banner (New) */}
-                                {finalCounts && (finalCounts.emergency || finalCounts.ACCIDENT > 0) && (
+                                {finalCounts && (finalCounts._emergency || finalCounts.ACCIDENT > 0) && (
                                     <div className="mb-4 bg-red-900/30 border border-red-500 rounded-lg p-4 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="p-3 bg-red-500/20 rounded-full text-red-500">
@@ -347,20 +357,20 @@ const SimulationPage = () => {
                                             <div>
                                                 <div className="text-red-400 text-xs font-bold uppercase tracking-wider">Accident Detected</div>
                                                 <div className="text-xl font-bold text-white uppercase">
-                                                    {finalCounts.calc_accident_type || (finalCounts.ACCIDENT > 1 ? "MULTIPLE ALERTS" : "ACCIDENT")}
+                                                    {finalCounts._accident_type || (finalCounts.ACCIDENT > 1 ? "MULTIPLE ALERTS" : "ACCIDENT")}
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <div className="text-gray-400 text-xs uppercase">Severity</div>
-                                            <div className="text-red-400 font-bold">{finalCounts.calc_severity || "HIGH"}</div>
+                                            <div className="text-red-400 font-bold">{finalCounts._severity || "HIGH"}</div>
                                         </div>
                                     </div>
                                 )}
 
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     {finalCounts && Object.entries(finalCounts).map(([k, v]) => (
-                                        (k !== 'lane_data' && k !== 'signals' && k !== 'emergency' && k !== 'calc_accident_type' && k !== 'calc_severity' && k !== 'ACCIDENT') && (
+                                        (!k.startsWith('_') && k !== 'lane_data' && k !== 'signals' && k !== 'accident_type' && k !== 'severity' && k !== 'emergency') && (
                                             <div key={k} className="bg-gray-800 p-3 rounded-lg flex justify-between items-center">
                                                 <span className="capitalize text-gray-400">{k.replace(/_/g, ' ')}</span>
                                                 <span className="font-bold text-xl">{v}</span>

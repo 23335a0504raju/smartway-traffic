@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 import express from 'express';
 import fs from 'fs';
 import multer from 'multer';
+import { OpenAI } from 'openai';
+import FormData from 'form-data'; // For sending files to AI engine
 import nodemailer from 'nodemailer';
 import twilio from 'twilio';
 
@@ -17,7 +19,8 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads')); // Serve uploaded files and snapshots
+app.use('/uploads', express.static('uploads')); // Serve uploaded files
+app.use('/snapshots', express.static('uploads')); // Also serve snapshots (saved alongside videos)
 
 // Supabase Client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -332,22 +335,22 @@ app.put('/api/videos/:id/analysis', async (req, res) => {
         // 2. Robust Vehicle Count Calculation (Fix for corrupted string inputs)
         let totalVehicles = 0;
         if (analysis_summary) {
-            // Option A: Explicit 'count' key exists and is a valid number
-            if (analysis_summary.count && !isNaN(parseInt(analysis_summary.count)) && String(analysis_summary.count).length < 10) {
-                totalVehicles = parseInt(analysis_summary.count);
-            }
-            // Option B: Sum up all numeric values in the object (excluding boolean/strings)
-            else {
-                totalVehicles = Object.values(analysis_summary).reduce((acc, val) => {
-                    // Only sum numbers (basic integer checks)
-                    if (typeof val === 'number') return acc + val;
-                    if (typeof val === 'string' && /^\d+$/.test(val)) return acc + parseInt(val);
-                    return acc;
-                }, 0);
-            }
+            // Sum only pure numeric vehicle count fields — skip boolean/string metadata
+            const skipKeys = new Set(['emergency', 'accident_type', 'severity', 'alerts',
+                                      'ai_report', 'lane_data', 'signals', 'ai_summary_text']);
+            totalVehicles = Object.entries(analysis_summary).reduce((acc, [key, val]) => {
+                if (skipKeys.has(key)) return acc;
+                if (typeof val === 'number' && Number.isFinite(val)) return acc + val;
+                if (typeof val === 'string' && /^\d+$/.test(val)) return acc + parseInt(val);
+                return acc;
+            }, 0);
         }
-        const hasEmergency = /ambulance|firetruck|police|accident/i.test(JSON.stringify(analysis_summary)) ||
-            Object.keys(analysis_summary).some(k => k === 'ACCIDENT');
+
+        // Detect emergency: check the explicit boolean flag first, then fallback to keyword scan
+        const hasEmergency = 
+            analysis_summary?.emergency === true ||
+            /ambulance|firetruck|police|accident/i.test(JSON.stringify(analysis_summary)) ||
+            Object.keys(analysis_summary || {}).some(k => k === 'ACCIDENT');
 
         console.log("--- DEBUG SAVE ANALYSIS ---");
         console.log("Snapshot Path received:", snapshot_path);
@@ -532,6 +535,79 @@ SNAPSHOT: ${snapshot_path || 'Not Available'}
 });
 
 // --- Legacy & Control Endpoints ---
+
+// =========================
+// SUMO SIMULATION ENDPOINTS
+// =========================
+
+// 6. Proxy to AI Engine for SUMO Upload & Save to DB
+// Since Express uses multer, we intercept the file and pass it to Python
+app.post('/api/sumo/analyze', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ error: 'No ZIP file uploaded' });
+
+        const formData = new FormData();
+        formData.append('file', fs.createReadStream(req.file.path), {
+            filename: req.file.originalname,
+            contentType: 'application/zip'
+        });
+
+        // 1. Send to Python AI Engine
+        const aiResponse = await axios.post('http://127.0.0.1:8000/api/sumo/upload', formData, {
+            headers: formData.getHeaders()
+        });
+
+        const analysisData = aiResponse.data.data; // The returned JSON from python
+
+        // 2. Save Result to Database
+        const { data: dbRecord, error } = await supabase
+            .from('sumo_sessions')
+            .insert([{
+                session_id: aiResponse.data.session_id,
+                network_name: analysisData.network_name,
+                junction_count: analysisData.junction_count,
+                total_vehicles: analysisData.total_vehicles_simulated,
+                emergency_detected: analysisData.emergency_detected,
+                vehicle_summary: analysisData.vehicle_summary,
+                junction_data: analysisData.junction_data
+            }])
+            .select()
+            .single();
+
+        if (error) console.error("DB Insert Error for SUMO:", error);
+
+        // Clean up temp file
+        fs.unlinkSync(req.file.path);
+
+        res.json({
+            message: 'Analysis complete',
+            db_record: dbRecord,
+            analysis: analysisData
+        });
+
+    } catch (error) {
+        console.error('SUMO Analyze Error:', error.response?.data || error.message);
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        res.status(500).json({ error: 'Simulation Analysis Failed' });
+    }
+});
+
+// 7. Get Past SUMO Sessions
+app.get('/api/sumo/sessions', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('sumo_sessions')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error) {
+        console.error("List SUMO Sessions Error:", error);
+        res.status(500).json({ error: 'Failed to fetch sessions' });
+    }
+});
+
 
 // Manual Traffic Override
 app.post('/api/override', async (req, res) => {

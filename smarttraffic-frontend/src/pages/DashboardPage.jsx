@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiAlertTriangle, FiCheckCircle, FiClock, FiFileText, FiTrendingUp, FiTruck, FiX } from 'react-icons/fi';
+import { FiAlertTriangle, FiCheckCircle, FiClock, FiFileText, FiTrendingUp, FiTruck, FiX, FiCpu, FiArchive } from 'react-icons/fi';
 import StatsCard from '../components/Dashboard/StatsCard';
 import { TrafficFlowChart } from '../components/Dashboard/TrafficChart';
 import { supabase } from '../lib/supabaseClient';
@@ -142,7 +142,7 @@ const VideoDetailsModal = ({ video, onClose }) => {
   );
 };
 
-const DashboardPage = ({ aiMode }) => {
+const DashboardPage = () => {
   const [stats, setStats] = useState({
     totalVehicles: 0,
     emergencies: 0,
@@ -154,10 +154,12 @@ const DashboardPage = ({ aiMode }) => {
   // New State for Videos
   const [recentVideos, setRecentVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [recentSumo, setRecentSumo] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
     fetchRecentVideos();
+    fetchRecentSumo();
 
     // Real-time subscription
     const channel = supabase
@@ -186,6 +188,18 @@ const DashboardPage = ({ aiMode }) => {
       }
     } catch (err) {
       console.error("Failed to fetch videos", err);
+    }
+  };
+
+  const fetchRecentSumo = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/sumo/sessions');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setRecentSumo(data.slice(0, 5));
+      }
+    } catch (err) {
+      console.error("Failed to fetch sumo sessions", err);
     }
   };
 
@@ -298,16 +312,6 @@ const DashboardPage = ({ aiMode }) => {
 
       <div className="dashboard-header">
         <h1 className="dashboard-title">Traffic Dashboard</h1>
-        <div style={{
-          padding: '0.5rem 1rem',
-          background: aiMode ? 'var(--success)' : 'var(--warning)',
-          color: 'white',
-          borderRadius: '20px',
-          fontSize: '0.875rem',
-          fontWeight: '600'
-        }}>
-          {aiMode ? '🤖 AI Mode Active' : '👤 Manual Control'}
-        </div>
       </div>
 
       {/* Stats Grid */}
@@ -374,41 +378,78 @@ const DashboardPage = ({ aiMode }) => {
       {/* Charts Grid */}
       <div className="charts-grid">
 
-        {/* Recent Analysis List (NEW) */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Recent AI Analysis</h3>
-          </div>
-          <div className="p-4 space-y-3">
-            {recentVideos.length === 0 ? (
-              <p className="text-[var(--text-secondary)] text-sm">No recent videos analyzed.</p>
-            ) : (
-              recentVideos.map(video => (
-                <div
-                  key={video.id}
-                  onClick={() => setSelectedVideo(video)}
-                  className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg cursor-pointer hover:bg-[var(--bg-primary)] transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center">
-                      <FiFileText size={20} />
+        {/* Left Column: Lists */}
+        <div className="flex flex-col gap-6">
+          {/* Recent Video Analysis */}
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">Recent Video Analysis</h3>
+            </div>
+            <div className="p-4 space-y-3">
+              {recentVideos.length === 0 ? (
+                <p className="text-[var(--text-secondary)] text-sm">No recent videos analyzed.</p>
+              ) : (
+                recentVideos.map(video => (
+                  <div
+                    key={video.id}
+                    onClick={() => setSelectedVideo(video)}
+                    className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg cursor-pointer hover:bg-[var(--bg-primary)] transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center">
+                        <FiFileText size={20} />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm group-hover:text-blue-500 transition-colors">{video.filename}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">{new Date(video.created_at).toLocaleDateString()}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-semibold text-sm group-hover:text-blue-500 transition-colors">{video.filename}</div>
-                      <div className="text-xs text-[var(--text-secondary)]">{new Date(video.created_at).toLocaleDateString()}</div>
-                    </div>
+                    {video.analysis_summary && (
+                      <div className="text-right">
+                        <span className="text-xs font-bold bg-green-500/20 text-green-500 px-2 py-0.5 rounded-full">Processed</span>
+                      </div>
+                    )}
                   </div>
-                  {video.analysis_summary && (
-                    <div className="text-right">
-                      <span className="text-xs font-bold bg-green-500/20 text-green-500 px-2 py-0.5 rounded-full">Processed</span>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Recent SUMO Analysis */}
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title flex items-center gap-2">
+                <FiCpu className="text-blue-500" /> Recent SUMO Sessions
+              </h3>
+            </div>
+            <div className="p-4 space-y-3">
+              {recentSumo.length === 0 ? (
+                <p className="text-[var(--text-secondary)] text-sm">No recent SUMO models analyzed.</p>
+              ) : (
+                recentSumo.map(session => (
+                   <div key={session.id} className="flex flex-col p-3 border border-[var(--border)] rounded-lg bg-[var(--bg-primary)] gap-2">
+                      <div className="flex justify-between items-start">
+                        <div className="font-bold text-sm text-white flex items-center gap-2">
+                           <FiArchive className="text-gray-400" /> {session.network_name}
+                        </div>
+                        {session.emergency_detected ? (
+                            <span className="text-[10px] uppercase font-bold bg-red-500/20 text-red-500 px-2 py-0.5 rounded border border-red-500/20">Emergency</span>
+                        ) : (
+                            <span className="text-[10px] uppercase font-bold bg-green-500/20 text-green-500 px-2 py-0.5 rounded border border-green-500/20">Normal</span>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center text-xs text-[var(--text-secondary)]">
+                        <span>{new Date(session.created_at).toLocaleDateString()}</span>
+                        <span className="font-mono bg-gray-800 px-1.5 rounded text-gray-400">{session.total_vehicles} veh • {session.junction_count} Jcts</span>
+                      </div>
+                   </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
+        {/* Right Column: Chart */}
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">Traffic Real-time Flow</h3>

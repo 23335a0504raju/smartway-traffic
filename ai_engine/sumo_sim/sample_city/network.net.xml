@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SmartWay Traffic - Sample City Block Network
+  4-junction 2x2 grid:
+    J_NW (x=0,  y=200)   J_NE (x=200, y=200)
+    J_SW (x=0,  y=0  )   J_SE (x=200, y=0  )
+
+  Outer entry edges (vehicles enter from outside):
+    N_W (North of J_NW), N_E (North of J_NE)
+    S_W (South of J_SW), S_E (South of J_SE)
+    W_N (West  of J_NW), W_S (West  of J_SW)
+    E_N (East  of J_NE), E_S (East  of J_SE)
+
+  Inner edges (between junctions):
+    J_NW <-> J_NE  (horizontal top)
+    J_SW <-> J_SE  (horizontal bottom)
+    J_NW <-> J_SW  (vertical left)
+    J_NE <-> J_SE  (vertical right)
+-->
+<net version="1.9" junctionCornerDetail="5" limitTurnSpeed="5.50"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00"
+              convBoundary="-120.00,-120.00,320.00,320.00"
+              origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00"
+              projParameter="!"/>
+
+    <!-- =================== OUTER DEAD-END NODES =================== -->
+    <junction id="n_N_W" type="dead_end" x="0.00"   y="320.00" incLanes="-eN_W_0"   intLanes="" shape="0.00,320.00"/>
+    <junction id="n_N_E" type="dead_end" x="200.00" y="320.00" incLanes="-eN_E_0"   intLanes="" shape="200.00,320.00"/>
+    <junction id="n_S_W" type="dead_end" x="0.00"   y="-120.00" incLanes="-eS_W_0"  intLanes="" shape="0.00,-120.00"/>
+    <junction id="n_S_E" type="dead_end" x="200.00" y="-120.00" incLanes="-eS_E_0"  intLanes="" shape="200.00,-120.00"/>
+    <junction id="n_W_N" type="dead_end" x="-120.00" y="200.00" incLanes="-eW_N_0"  intLanes="" shape="-120.00,200.00"/>
+    <junction id="n_W_S" type="dead_end" x="-120.00" y="0.00"   incLanes="-eW_S_0"  intLanes="" shape="-120.00,0.00"/>
+    <junction id="n_E_N" type="dead_end" x="320.00" y="200.00"  incLanes="-eE_N_0"  intLanes="" shape="320.00,200.00"/>
+    <junction id="n_E_S" type="dead_end" x="320.00" y="0.00"    incLanes="-eE_S_0"  intLanes="" shape="320.00,0.00"/>
+
+    <!-- =================== TRAFFIC LIGHT JUNCTIONS =================== -->
+    <junction id="J_NW" type="traffic_light" x="0.00"   y="200.00"
+              incLanes="eN_W_0 eW_N_0 eI_SW_NW_0 eI_NE_NW_0"
+              intLanes=":J_NW_0_0 :J_NW_1_0 :J_NW_2_0 :J_NW_3_0"
+              shape="-8,208 8,208 8,192 -8,192"/>
+    <junction id="J_NE" type="traffic_light" x="200.00" y="200.00"
+              incLanes="eN_E_0 eE_N_0 eI_NW_NE_0 eI_SE_NE_0"
+              intLanes=":J_NE_0_0 :J_NE_1_0 :J_NE_2_0 :J_NE_3_0"
+              shape="192,208 208,208 208,192 192,192"/>
+    <junction id="J_SW" type="traffic_light" x="0.00"   y="0.00"
+              incLanes="eS_W_0 eW_S_0 eI_NW_SW_0 eI_SE_SW_0"
+              intLanes=":J_SW_0_0 :J_SW_1_0 :J_SW_2_0 :J_SW_3_0"
+              shape="-8,8 8,8 8,-8 -8,-8"/>
+    <junction id="J_SE" type="traffic_light" x="200.00" y="0.00"
+              incLanes="eS_E_0 eE_S_0 eI_NE_SE_0 eI_SW_SE_0"
+              intLanes=":J_SE_0_0 :J_SE_1_0 :J_SE_2_0 :J_SE_3_0"
+              shape="192,8 208,8 208,-8 192,-8"/>
+
+    <!-- =================== OUTER EDGES (entry from outside city) =================== -->
+    <!-- North entries -->
+    <edge id="eN_W"  from="n_N_W" to="J_NW" priority="1"><lane id="eN_W_0"  index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="-eN_W" from="J_NW" to="n_N_W" priority="1"><lane id="-eN_W_0" index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="eN_E"  from="n_N_E" to="J_NE" priority="1"><lane id="eN_E_0"  index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="-eN_E" from="J_NE" to="n_N_E" priority="1"><lane id="-eN_E_0" index="0" speed="13.89" length="112.00"/></edge>
+    <!-- South entries -->
+    <edge id="eS_W"  from="n_S_W" to="J_SW" priority="1"><lane id="eS_W_0"  index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="-eS_W" from="J_SW" to="n_S_W" priority="1"><lane id="-eS_W_0" index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="eS_E"  from="n_S_E" to="J_SE" priority="1"><lane id="eS_E_0"  index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="-eS_E" from="J_SE" to="n_S_E" priority="1"><lane id="-eS_E_0" index="0" speed="13.89" length="112.00"/></edge>
+    <!-- West entries -->
+    <edge id="eW_N"  from="n_W_N" to="J_NW" priority="1"><lane id="eW_N_0"  index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="-eW_N" from="J_NW" to="n_W_N" priority="1"><lane id="-eW_N_0" index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="eW_S"  from="n_W_S" to="J_SW" priority="1"><lane id="eW_S_0"  index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="-eW_S" from="J_SW" to="n_W_S" priority="1"><lane id="-eW_S_0" index="0" speed="13.89" length="112.00"/></edge>
+    <!-- East entries -->
+    <edge id="eE_N"  from="n_E_N" to="J_NE" priority="1"><lane id="eE_N_0"  index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="-eE_N" from="J_NE" to="n_E_N" priority="1"><lane id="-eE_N_0" index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="eE_S"  from="n_E_S" to="J_SE" priority="1"><lane id="eE_S_0"  index="0" speed="13.89" length="112.00"/></edge>
+    <edge id="-eE_S" from="J_SE" to="n_E_S" priority="1"><lane id="-eE_S_0" index="0" speed="13.89" length="112.00"/></edge>
+
+    <!-- =================== INNER EDGES (between junctions) =================== -->
+    <!-- Top: J_NW <-> J_NE -->
+    <edge id="eI_NW_NE" from="J_NW" to="J_NE" priority="1"><lane id="eI_NW_NE_0" index="0" speed="13.89" length="184.00"/></edge>
+    <edge id="eI_NE_NW" from="J_NE" to="J_NW" priority="1"><lane id="eI_NE_NW_0" index="0" speed="13.89" length="184.00"/></edge>
+    <!-- Bottom: J_SW <-> J_SE -->
+    <edge id="eI_SW_SE" from="J_SW" to="J_SE" priority="1"><lane id="eI_SW_SE_0" index="0" speed="13.89" length="184.00"/></edge>
+    <edge id="eI_SE_SW" from="J_SE" to="J_SW" priority="1"><lane id="eI_SE_SW_0" index="0" speed="13.89" length="184.00"/></edge>
+    <!-- Left: J_NW <-> J_SW -->
+    <edge id="eI_NW_SW" from="J_NW" to="J_SW" priority="1"><lane id="eI_NW_SW_0" index="0" speed="13.89" length="184.00"/></edge>
+    <edge id="eI_SW_NW" from="J_SW" to="J_NW" priority="1"><lane id="eI_SW_NW_0" index="0" speed="13.89" length="184.00"/></edge>
+    <!-- Right: J_NE <-> J_SE -->
+    <edge id="eI_NE_SE" from="J_NE" to="J_SE" priority="1"><lane id="eI_NE_SE_0" index="0" speed="13.89" length="184.00"/></edge>
+    <edge id="eI_SE_NE" from="J_SE" to="J_NE" priority="1"><lane id="eI_SE_NE_0" index="0" speed="13.89" length="184.00"/></edge>
+
+    <!-- =================== TRAFFIC LIGHT PROGRAMS =================== -->
+    <!-- All 4 junctions use the same 2-phase program (NS green, then WE green) -->
+    <tlLogic id="J_NW" type="static" programID="0" offset="0">
+        <phase duration="30" state="GGrrGGrr"/>
+        <phase duration="5"  state="yyrryyrr"/>
+        <phase duration="30" state="rrGGrrGG"/>
+        <phase duration="5"  state="rryyrryy"/>
+    </tlLogic>
+    <tlLogic id="J_NE" type="static" programID="0" offset="0">
+        <phase duration="30" state="GGrrGGrr"/>
+        <phase duration="5"  state="yyrryyrr"/>
+        <phase duration="30" state="rrGGrrGG"/>
+        <phase duration="5"  state="rryyrryy"/>
+    </tlLogic>
+    <tlLogic id="J_SW" type="static" programID="0" offset="15">
+        <phase duration="30" state="GGrrGGrr"/>
+        <phase duration="5"  state="yyrryyrr"/>
+        <phase duration="30" state="rrGGrrGG"/>
+        <phase duration="5"  state="rryyrryy"/>
+    </tlLogic>
+    <tlLogic id="J_SE" type="static" programID="0" offset="15">
+        <phase duration="30" state="GGrrGGrr"/>
+        <phase duration="5"  state="yyrryyrr"/>
+        <phase duration="30" state="rrGGrrGG"/>
+        <phase duration="5"  state="rryyrryy"/>
+    </tlLogic>
+
+</net>

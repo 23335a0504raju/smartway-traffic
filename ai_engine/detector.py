@@ -649,6 +649,10 @@ class VehicleDetector:
             # 🔵 ADVANCED MODE LOGIC (KEEP EXISTING)
             print(f"DEBUG: Using ADVANCED mode detection", flush=True)
             
+            # Initialize fire_detected here so it's always defined,
+            # regardless of whether we enter the static or dynamic branch below.
+            fire_detected = False
+
             # ✅ CORRECT ACCIDENT DECISION TREE
             if is_static or self.is_low_motion_scene(raw_detections):
                 # ===========================================

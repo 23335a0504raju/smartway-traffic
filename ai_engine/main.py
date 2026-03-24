@@ -1,11 +1,17 @@
 import os
+import sys
 import cv2
 import numpy as np
 import base64
 import asyncio
 import json
 import uuid
-from fastapi import FastAPI, HTTPException
+import zipfile
+import shutil
+import sumo_parser
+import sumo_main
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -15,8 +21,16 @@ from detector import VehicleDetector
 from traffic_logic import TrafficController
 import threading
 import time
-import traci
-import sumolib
+
+# SUMO libraries are only available if Eclipse SUMO is installed.
+# The server will start normally without SUMO; SUMO routes will be disabled.
+try:
+    import traci
+    import sumolib
+    SUMO_AVAILABLE = True
+except ImportError:
+    SUMO_AVAILABLE = False
+    print("WARNING: SUMO (traci/sumolib) not found. SUMO simulation routes will be unavailable.")
 
 # =========================
 # Environment & App Setup
@@ -151,6 +165,10 @@ def get_upload_path(filename):
 # =========================
 
 async def generate_frames(video_path):
+    if detector is None:
+        yield {"data": json.dumps({"error": "AI model not loaded. Check server logs.", "completed": True})}
+        return
+
     img = cv2.imread(video_path)
     is_image = img is not None
     cap = None if is_image else cv2.VideoCapture(video_path)
@@ -199,6 +217,7 @@ async def generate_frames(video_path):
     
     print(f"DEBUG: Final Yield - Emergency: {detector.accident_confirmed}, Type: {final_type}", flush=True)
 
+    # Single final completion payload (duplicate removed)
     yield {"data": json.dumps({
         "completed": True,
         "counts": detector.total_counts,
@@ -207,16 +226,6 @@ async def generate_frames(video_path):
         "severity": final_sev,
         "snapshot_path": snapshot_path
     })}
-
-
-    # =========================
-    # FINAL PAYLOAD
-    # =========================
-    yield dict(data=json.dumps({
-        "completed": True,
-        "counts": detector.total_counts,
-        "snapshot_path": snapshot_path
-    })) 
 
 # =========================
 # Routes
@@ -244,6 +253,8 @@ def get_state():
 
 @app.post("/api/process_video/")
 def process_video(req: ProcessRequest):
+    if detector is None:
+        raise HTTPException(503, "AI model not loaded. Check server logs for model load errors.")
     path = get_upload_path(req.filename)
     if not os.path.exists(path):
         raise HTTPException(404, "File not found")
@@ -267,6 +278,8 @@ async def live_sse(file: str):
 
 @app.post("/api/sumo/start")
 def start_sumo_sim():
+    if not SUMO_AVAILABLE:
+        raise HTTPException(503, "SUMO is not installed on this server. Please install Eclipse SUMO.")
     if sim_status["running"]:
         return {"message": "Simulation already running"}
     
@@ -277,12 +290,58 @@ def start_sumo_sim():
 
 @app.post("/api/sumo/stop")
 def stop_sumo_sim():
+    if not SUMO_AVAILABLE:
+        raise HTTPException(503, "SUMO is not installed on this server.")
     sim_status["running"] = False
     return {"message": "Simulation stopping..."}
 
 @app.get("/api/sumo/status")
 def get_sumo_status():
-    return sim_status
+    return {**sim_status, "sumo_available": SUMO_AVAILABLE}
+
+# =========================
+# 5. NEW SUMO UPLOAD API (XML Parsing, No SUMO Binary Required)
+# =========================
+
+@app.post("/api/sumo/upload")
+async def handle_sumo_upload(file: UploadFile = File(...)):
+    """
+    Accepts a .zip file containing SUMO .net.xml and .rou.xml,
+    extracts it, parses the traffic flows, and returns the analysis
+    without needing Eclipse SUMO installed.
+    """
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(400, "File must be a .zip containing SUMO files")
+        
+    session_id = str(uuid.uuid4())
+    extract_dir = os.path.join(os.path.dirname(__file__), "sumo_uploads", session_id)
+    os.makedirs(extract_dir, exist_ok=True)
+    
+    zip_path = os.path.join(extract_dir, file.filename)
+    
+    # Save the upload
+    with open(zip_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # Extract the ZIP
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_dir)
+    except zipfile.BadZipFile:
+        shutil.rmtree(extract_dir)
+        raise HTTPException(400, "Invalid ZIP file")
+        
+    # Run the XML parser
+    try:
+        analysis_result = sumo_parser.run_headless_simulation(extract_dir)
+        return {"status": "success", "session_id": session_id, "data": analysis_result}
+    except FileNotFoundError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(500, f"Analysis failed: {str(e)}")
+    finally:
+        if os.path.exists(extract_dir):
+            shutil.rmtree(extract_dir)
 
 # =========================
 # Entry Point

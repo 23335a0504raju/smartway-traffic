@@ -21,13 +21,15 @@
 *   **AI Integration**: `openai` npm package configured for **OpenRouter** (GPT-4o) for high-level scene analysis.
 *   **File Handling**: `multer` for video upload management.
 
-### C. AI Engine (Computer Vision Core)
+### C. AI Engine (Computer Vision Core & SUMO)
 *   **Language**: [Python](https://www.python.org/) (3.11+).
 *   **Framework**: [FastAPI](https://fastapi.tiangolo.com/) for high-performance async API.
 *   **Vision Model**: [Ultralytics YOLOv8](https://docs.ultralytics.com/) (Nano model) for object detection.
 *   **Tracking**: YOLOv8 `model.track` for persistent object tracking (ID assignment).
 *   **Image Processing**: [OpenCV](https://opencv.org/) (`cv2` headless) for frame manipulation and drawing.
 *   **Concurrency**: `asyncio` and `sse_starlette` for streaming analysis data to frontend.
+*   **Simulation Engine**: Custom headless XML integration to import `net.xml` and `rou.xml` city planning datasets without requiring the Eclipse SUMO GUI or native system dependencies.
+*   **Simulation Algorithms**: Automatically extrapolates Cartesian boundaries for intersection modeling, integrates Webster's Formula calculation frameworks for standard signal transitions, and evaluates proximity thresholds for Emergency vehicle overrides.
 
 ---
 
@@ -93,6 +95,15 @@ graph TD
 5.  Backend saves the report and stats into `traffic_logs` table.
 6.  Frontend displays the "AI Analysis Popup" immediately.
 
+### 4.4. Headless SUMO Traffic Simulation
+1. **Model Extraction:** The user mounts a specialized SUMO simulation zip archive (containing standard geometric `.net.xml` and route `.rou.xml` datasets) directly into the `SumoPage` Drag & Drop module.
+2. **AI Simulation Parsing:** The `/api/sumo/analyze` module decompiles the map, isolating path coordinates, extracting edge events, mapping exact vehicle routing limits, and generating optimum default signal timings per junction (Webster's method).
+3. **Live Geometry Telemetry (React Canvas State Machine):** 
+   - A newly fabricated `<canvas>` engine locally mounts the pure mathematical map into 2D display tracks directly on the client machine.
+   - Using decoupled Physics bounds, the system manually calculates localized intersection density levels, implements vehicle tracking collision queues (stopping vehicles sequentially without overlap).
+   - An integrated 60-FPS AI Automaton constantly monitors exact vehicle bounding models to route active priority signals for Ambulance routing overrides perfectly synced with visual distance.
+4. **Historical Access:** Processed data is sent to the Node Backend where it serializes natively to the Supabase log schemas, providing full interactive replay/metrics capability for previous executions.
+
 ---
 
 ## 5. Database Schema
@@ -112,6 +123,17 @@ graph TD
 *   `emergency_detected` (Boolean): True if Ambulance/Firetruck/Accident found.
 *   `created_at` (Timestamp): Log time.
 
+### Table: `sumo_sessions`
+*   `id` (UUID): Primary Key
+*   `session_id` (UUID): Process identifier
+*   `network_name` (Text): Name of parsed XML map
+*   `junction_count` (Int): Total analyzed intersections detected
+*   `total_vehicles` (Int): Total vehicle paths simulated
+*   `emergency_detected` (Boolean): Extracted existence of high-priority emergency logic hooks
+*   `vehicle_summary` (JSONB): Raw mix counts parsed array (`car`, `bus`, `truck`, `motorcycle`, `ambulance`)
+*   `junction_data` (JSONB): Contains exact dictionary layouts for Webster's green thresholds and density metrics per axis
+*   `created_at` (Timestamp): Record time
+
 ---
 
 ## 6. Directory Structure
@@ -120,16 +142,17 @@ graph TD
 smartway-traffic/
 ├── ai_engine/           # Python Service
 │   ├── detector.py      # YOLO Logic & Tracking
+│   ├── sumo_parser.py   # Headless XML Layout Parsing & Geometric Formulation
 │   ├── main.py          # FastAPI Routes
 │   └── requirements.txt
 ├── backend/             # Node.js Service
-│   ├── index.js         # Express Server & OpenRouter integration
+│   ├── index.js         # Express Server & Postgres Endpoint Bindings
 │   ├── schema.sql       # Database definitions
-│   └── uploads/         # Video storage
+│   └── uploads/         # Storage layer
 └── smarttraffic-frontend/ # React App
     ├── src/
-    │   ├── pages/       # Dashboard, Simulation, Profile
-    │   ├── components/  # Reusable UI
-    │   └── App.jsx      # Routing
+    │   ├── pages/       # Dashboard, Simulation, Profile, Create Event, SumoPage
+    │   ├── components/  # Reusable UI, StreamView, MediaView, SumoVisualizer
+    │   └── App.jsx      # Route map
     └── vite.config.js
 ```

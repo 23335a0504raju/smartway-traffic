@@ -14,14 +14,14 @@ import HistoryPage from './pages/HistoryPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import SimulationPage from './pages/SimulationPage';
+import SumoHistoryPage from './pages/SumoHistoryPage';
 import SumoPage from './pages/SumoPage';
 import './styles/pages.css';
 
 
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [aiMode, setAiMode] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   // Protected Route Component
   const ProtectedRoute = ({ children }) => {
@@ -53,32 +53,31 @@ function App() {
             element={
               <ProtectedRoute>
                 <div className="app">
-                  <Navbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+                  <Navbar onMenuToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
                   <Sidebar
-                    isOpen={sidebarOpen}
-                    onClose={() => setSidebarOpen(false)}
-                    aiMode={aiMode}
-                    onAiModeToggle={setAiMode}
+                    isCollapsed={sidebarCollapsed}
                   />
 
-                  <main className="main-content">
-                    <Routes>
-                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                      <Route path="/dashboard" element={<DashboardPage aiMode={aiMode} />} />
+                  <main className={`main-content ${sidebarCollapsed ? 'collapsed' : ''}`}>
+                    <div style={{ flex: 1 }}>
+                      <Routes>
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/dashboard" element={<DashboardPage />} />
 
-                      <Route path="/simulation" element={<SimulationPage />} />
-                      <Route path="/sumo" element={<SumoPage />} />
-                      <Route path="/emergency" element={<EmergencyPage />} />
-                      <Route path="/alerts" element={<AlertsPage />} />
-                      <Route path="/analysis" element={<AnalysisPage />} />
-                      <Route path="/history" element={<HistoryPage />} />
-                      <Route path="/analytics" element={<AnalyticsPage />} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/profile" element={<ProfilePage />} />
-                    </Routes>
+                        <Route path="/simulation" element={<SimulationPage />} />
+                        <Route path="/sumo" element={<SumoPage />} />
+                        <Route path="/sumo-history" element={<SumoHistoryPage />} />
+                        <Route path="/emergency" element={<EmergencyPage />} />
+                        <Route path="/alerts" element={<AlertsPage />} />
+                        <Route path="/analysis" element={<AnalysisPage />} />
+                        <Route path="/history" element={<HistoryPage />} />
+                        <Route path="/analytics" element={<AnalyticsPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                      </Routes>
+                    </div>
+                    <Footer />
                   </main>
-
-                  <Footer />
                 </div>
               </ProtectedRoute>
             }
