@@ -57,7 +57,7 @@ app.post('/api/login', async (req, res) => {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: provider,
             options: {
-                redirectTo: 'http://localhost:5173/dashboard',
+                redirectTo: `${process.env.FRONTEND_URL}/dashboard`,
             },
         });
         if (error) throw error;
@@ -103,7 +103,7 @@ app.post('/api/videos', upload.single('video'), async (req, res) => {
         // B. Trigger AI Analysis IMMEDIATELY (Batch Processing)
         // Expected AI Endpoint: POST /api/process_video/ { filename: "..." }
         try {
-            const aiResponse = await axios.post('http://127.0.0.1:8000/api/process_video/', {
+            const aiResponse = await axios.post(`${process.env.AI_ENGINE_URL}/api/process_video/`, {
                 filename: filename
             });
 
@@ -553,7 +553,7 @@ app.post('/api/sumo/analyze', upload.single('file'), async (req, res) => {
         });
 
         // 1. Send to Python AI Engine
-        const aiResponse = await axios.post('http://127.0.0.1:8000/api/sumo/upload', formData, {
+        const aiResponse = await axios.post(`${process.env.AI_ENGINE_URL}/api/sumo/upload`, formData, {
             headers: formData.getHeaders()
         });
 
@@ -613,7 +613,7 @@ app.get('/api/sumo/sessions', async (req, res) => {
 app.post('/api/override', async (req, res) => {
     try {
         const { junction_id, action } = req.body;
-        const aiResponse = await axios.post('http://127.0.0.1:8000/traffic/override', {
+        const aiResponse = await axios.post(`${process.env.AI_ENGINE_URL}/traffic/override`, {
             junction_id,
             action,
             mode: 'MANUAL'

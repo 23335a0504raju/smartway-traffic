@@ -12,7 +12,7 @@ const EmergencyPage = () => {
 
   const fetchEmergencies = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/emergencies');
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/emergencies`);
       const data = await res.json();
 
       // Transform DB data to UI format
@@ -230,7 +230,7 @@ const EmergencyPage = () => {
             }}>
               {emergencies.length > 0 && emergencies[activeEmergency]?.snapshot ? (
                 <img
-                  src={`http://localhost:5000/uploads/${emergencies[activeEmergency].snapshot.split(/[\\/]/).pop()}`}
+                  src={`${import.meta.env.VITE_BACKEND_URL}/uploads/${emergencies[activeEmergency].snapshot.split(/[\\/]/).pop()}`}
                   alt="Emergency Snapshot"
                   className="w-full h-full object-cover opacity-80"
                 />

@@ -19,7 +19,7 @@ const SumoPage = () => {
 
     const fetchSessions = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/sumo/sessions');
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/sumo/sessions`);
             const data = await res.json();
             if (Array.isArray(data)) setSessions(data);
         } catch (err) {
@@ -38,7 +38,7 @@ const SumoPage = () => {
         formData.append('file', file);
 
         try {
-            const res = await fetch('http://localhost:5000/api/sumo/analyze', {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/sumo/analyze`, {
                 method: 'POST',
                 body: formData
             });

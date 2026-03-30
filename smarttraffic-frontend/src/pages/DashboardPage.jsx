@@ -62,7 +62,7 @@ const VideoDetailsModal = ({ video, onClose }) => {
           {snapshot && (
             <div className="rounded-xl overflow-hidden border border-[var(--border)] shadow-sm">
               <img
-                src={`http://localhost:5000/api/snapshots/${snapshot.split(/[/\\]/).pop()}`}
+                src={`${import.meta.env.VITE_BACKEND_URL}/api/snapshots/${snapshot.split(/[/\\]/).pop()}`}
                 alt="Traffic Snapshot"
                 className="w-full h-auto object-cover max-h-64"
               />
@@ -181,7 +181,7 @@ const DashboardPage = () => {
   const fetchRecentVideos = async () => {
     // Fetch processed videos from backend/DB for the list
     try {
-      const res = await fetch('http://localhost:5000/api/videos');
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/videos`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setRecentVideos(data.slice(0, 5)); // Show top 5
@@ -193,7 +193,7 @@ const DashboardPage = () => {
 
   const fetchRecentSumo = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/sumo/sessions');
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/sumo/sessions`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setRecentSumo(data.slice(0, 5));
@@ -290,7 +290,7 @@ const DashboardPage = () => {
   const handleOverride = async (junctionId, action) => {
     try {
       console.log(`Setting ${junctionId} to ${action}`);
-      const response = await fetch('http://localhost:5000/api/override', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/override`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ junction_id: junctionId, action }),

@@ -71,7 +71,7 @@ const HistoryPage = () => {
                                     <div className="mb-4 md:mb-0">
                                         <h4 className="font-bold text-[var(--text-secondary)] mb-2 uppercase text-xs tracking-wider">Event Snapshot</h4>
                                         <img
-                                            src={`http://localhost:5000/snapshots/${log.snapshot_url.split(/[/\\]/).pop()}`}
+                                            src={`${import.meta.env.VITE_BACKEND_URL}/snapshots/${log.snapshot_url.split(/[/\\]/).pop()}`}
                                             alt="Event Snapshot"
                                             className="w-full h-48 object-cover rounded-lg border border-[var(--border)]"
                                             onError={(e) => { e.target.style.display = 'none'; }}

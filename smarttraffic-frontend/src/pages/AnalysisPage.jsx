@@ -28,7 +28,7 @@ const AnalysisPage = () => {
     const fetchVideos = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/videos');
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/videos`);
             const data = await response.json();
             if (Array.isArray(data)) {
                 setVideos(data);
@@ -83,7 +83,7 @@ const AnalysisPage = () => {
         data.append('email', formData.email);
 
         try {
-            const response = await fetch('http://localhost:5000/api/videos', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/videos`, {
                 method: 'POST',
                 body: data,
             });
@@ -113,7 +113,7 @@ const AnalysisPage = () => {
         if (!window.confirm('Are you sure you want to delete this video and its analysis data?')) return;
 
         try {
-            await fetch(`http://localhost:5000/api/videos/${id}`, { method: 'DELETE' });
+            await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/videos/${id}`, { method: 'DELETE' });
             fetchVideos();
         } catch (error) {
             console.error('Delete error:', error);

@@ -24,7 +24,7 @@ const SimulationPage = () => {
     }, [isPaused]);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/videos')
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/videos`)
             .then(res => res.json())
             .then(data => setVideos(data))
             .catch(err => console.error("Failed to load videos", err));
@@ -53,7 +53,7 @@ const SimulationPage = () => {
     };
 
     const startLiveDetection = (filename) => {
-        const source = new EventSource(`http://localhost:8000/api/live-detect-sse/?file=stored:${filename}`);
+        const source = new EventSource(`${import.meta.env.VITE_AI_ENGINE_URL}/api/live-detect-sse/?file=stored:${filename}`);
         setEvtSource(source);
 
         source.onopen = () => {
@@ -154,7 +154,7 @@ const SimulationPage = () => {
             severity: finalCounts?._severity || null,
         };
 
-        fetch(`http://localhost:5000/api/videos/${currentVideoId}/analysis`, {
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/videos/${currentVideoId}/analysis`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -385,7 +385,7 @@ const SimulationPage = () => {
                                 <div>
                                     <h3 className="text-lg font-semibold mb-3 text-purple-400">Snapshot</h3>
                                     <div className="rounded-lg overflow-hidden border border-gray-700">
-                                        <img src={`http://localhost:5000/uploads/${snapshotPath.split(/[\\/]/).pop()}`} alt="Snapshot" className="w-full object-cover" />
+                                        <img src={`${import.meta.env.VITE_BACKEND_URL}/uploads/${snapshotPath.split(/[\\/]/).pop()}`} alt="Snapshot" className="w-full object-cover" />
                                         {/* Note: This assumes specific backend serving setup, might need adjustment */}
                                     </div>
                                 </div>
