@@ -5,7 +5,7 @@ import os
 
 class VehicleDetector:
     
-    def __init__(self, model_path="yolov8s.pt"):
+    def __init__(self, model_path="yolov8n.pt"):
         # Load the YOLOv8 model
         self.model = YOLO(model_path)
         
@@ -455,7 +455,10 @@ class VehicleDetector:
         self.emergency_signal = False
 
         self.frame_counter += 1
-        results = self.model.track(frame, persist=True, tracker="bytetrack.yaml", conf=0.45, verbose=False)[0]
+        if is_static:
+            results = self.model.predict(frame, conf=0.45, verbose=False)[0]
+        else:
+            results = self.model.track(frame, persist=True, tracker="bytetrack.yaml", conf=0.45, verbose=False)[0]
         
         detections = []
         vehicle_count = 0
