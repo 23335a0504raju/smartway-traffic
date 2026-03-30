@@ -9,7 +9,6 @@ import uuid
 import zipfile
 import shutil
 import sumo_parser
-import sumo_main
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
